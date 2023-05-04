@@ -19,7 +19,7 @@ module.exports = {
             )
             .catch((err)=>res.status(500).json(err));
     },
-    createrUser(req,res){
+    createUser(req,res){
         User.create(req.body)
             .then((user)=>res.json(user))
             .catch((err)=>{
@@ -27,14 +27,23 @@ module.exports = {
                 return res.status(500).json(err);
             });
     },
-    delete(req,res){
+    updateUser(req,res){
+        User.findOneAndUpdate(
+            {_id:req.params.userId},
+            {$set:req.body},
+            {runValidators:true,new:true}
+        )
+        .then((user)=>res.json(user))
+        .catch((err)=>console.error(err))
+    },
+    deleteUser(req,res){
         User.findOneAndDelete({_id:req.params.userId})
-            .then((user)=>{
-                !user
-                    ?res.status(404).json({message:"No User find with this ID!"})
-                    :Thought.deleteMany({_id:{$in: user.thoughts}})
-            })
-            .then((res)=>res.json({message: "Delete user and Thought"}))
+            // .then((user)=>{
+            //     !user
+            //         ?res.status(404).json({message:"No User find with this ID!"})
+            //         :Thought.deleteMany({_id:{$in: user.thoughts}})
+            // })
+            .then((user)=>res.json(user))
             .catch((err)=>res.status(500).json(err));
     },
     addFriend(req,res){
