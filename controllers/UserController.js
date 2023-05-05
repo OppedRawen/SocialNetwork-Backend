@@ -1,69 +1,83 @@
 const {Thought,User} = require('../models');
 
 module.exports = {
-    getUser(req,res){
-        User.find({})
-            .then((user)=> res.json(user))
-            .catch((err)=> res.status(500).json(err));
-    },
+    async  getUser(req, res) {
+        try {
+          const users = await User.find({});
+          res.json(users);
+        } catch (err) {
+          res.status(500).json(err);
+        }
+      },
+      
 
-    getSingleUser(req,res){
-        User.findOne({_id:req.params.userId})
+      async  getSingleUser(req, res) {
+        try {
+          const user = await User.findOne({_id: req.params.userId})
             .populate("thoughts")
             .populate("friends")
-            .select("-__v")
-            .then((user)=>
-                !user
-                    ?res.status(404).json({message: "No User find with that ID!"})
-                    :res.json(user)
-            )
-            .catch((err)=>res.status(500).json(err));
+            .select("-__v");
+          if (!user) {
+            return res.status(404).json({ message: "No User find with that ID!" });
+          }
+          res.json(user);
+        } catch (err) {
+          res.status(500).json(err);
+        }
+      },
+      
+    async createUser(req,res){
+            try {
+              const user = await User.create(req.body);
+              res.json(user);
+            } catch (error) {
+              res.status(500).json(error);
+            }
     },
-    createUser(req,res){
-        User.create(req.body)
-            .then((user)=>res.json(user))
-            .catch((err)=>{
-                console.log(err);
-                return res.status(500).json(err);
-            });
-    },
-    updateUser(req,res){
-        User.findOneAndUpdate(
+    async updateUser(req,res){
+        try {
+          const user = await User.findOneAndUpdate(
             {_id:req.params.userId},
             {$set:req.body},
             {runValidators:true,new:true}
         )
-        .then((user)=>res.json(user))
-        .catch((err)=>console.error(err))
+        res.json(user);
+        } catch (error) {
+          console.error(error);
+        }
     },
-    deleteUser(req,res){
-        User.findOneAndDelete({_id:req.params.userId})
-            // .then((user)=>{
-            //     !user
-            //         ?res.status(404).json({message:"No User find with this ID!"})
-            //         :Thought.deleteMany({_id:{$in: user.thoughts}})
-            // })
-            .then((user)=>res.json(user))
-            .catch((err)=>res.status(500).json(err));
+    async deleteUser(req,res){
+            try {
+              const user = await User.findOneAndDelete({_id:req.params.userId});
+              res.json(user);
+            } catch (error) {
+              res.status(500).json(error);
+            }
     },
-    addFriend(req,res){
-        User.findOneAndUpdate(
+    async addFriend(req,res){
+        try {
+          const user = await User.findOneAndUpdate(
             {_id:req.params.userId},
             {$addToSet:{friends:req.params.friendId}},
             {runValidators:true, new:true}
-        )
-        .then((user)=>{
-            res.json(user)
-        })
-        .catch((err)=>res.status(500).json(err));
+        );
+        res.json(user);
+        } catch (error) {
+          res.status(500).json(error);
+        }
     },
-    deleteFriend(req,res){
-        User.findOneAndUpdate(
+   async deleteFriend(req,res){
+  
+        try {
+          const user = await User.findOneAndUpdate(
             {_id:req.params.userId},
             {$pull:{friends:req.params.friendId}},
             {new:true}
-        ).then((user)=>res.json(user))
-        .catch((err)=>res.status(500).json(err));
+        )
+        res.json(user);
+        } catch (error) {
+          res.status(500).json(error);
+        }
     }
     
 }
